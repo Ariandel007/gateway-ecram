@@ -1,0 +1,45 @@
+server:
+  port: 8090
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      default-zone: http://localhost:8761/eureka
+
+spring:
+  application:
+    name: gateway-ecram
+
+  cloud:
+    gateway:
+      routes:
+        - id: auth-server-ecram
+          uri: lb://auth-server-ecram
+          predicates:
+            - Path=/api/oauth-ms/**
+          filters:
+            - StripPrefix=2
+
+        - id: user-service-ecram
+          uri: lb://user-service-ecram
+          predicates:
+            - Path=/api/users-ms/**
+          filters:
+            - StripPrefix=2
+
+
+config:
+  security:
+    oauth:
+      jwt:
+        key: asdfSFS34wfsdfsdfSDSD32dfsddDDerQSNCK34SOWEK
+
+
+
+#el lb es para indicar el balanceo de carga
+#los "-" es para indicar que seran una lista
+#El StripPrefix indica que en el prefijx pusimos 2 pefijotos "api/nombremodulo/"
