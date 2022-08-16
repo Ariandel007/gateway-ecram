@@ -34,6 +34,8 @@ public class SpringSecurityConfig {
                 .pathMatchers(HttpMethod.POST,
                         "/api/users-ms/v1/users/findUsers",
                         "/api/users-ms/v1/users/createUser").hasAnyRole("ADMIN", "USER")//No se coloca el prefijo ROL_ porque es automaticamente insertado
+                .pathMatchers(HttpMethod.POST,
+                        "/api/posts-ms/v1/groups/createGroup/{username}").access(this::currentUserMatchesPath)
                 .anyExchange().authenticated()
                 .and().addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .csrf().disable()
