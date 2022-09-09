@@ -37,6 +37,7 @@ public class SpringSecurityConfig {
                 .pathMatchers(HttpMethod.POST,
                         "/api/posts-ms/v1/groups/createGroup/{username}",
                         "/api/posts-ms/v1/posts/createPost/{username}").access(this::currentUserMatchesPath)
+                .pathMatchers("/api/posts-ms/v1/posts/public/**").permitAll()
                 .anyExchange().authenticated()
                 .and().addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .csrf().disable()
