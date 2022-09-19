@@ -15,6 +15,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,11 @@ public class AuthenticationManagerJwt implements ReactiveAuthenticationManager {
                     String userName = claims.get("user_name", String.class);
                     List<String> roles = claims.get("authorities", List.class);
                     Collection<GrantedAuthority> authorities = roles.stream().map(role-> new SimpleGrantedAuthority(role)).collect(Collectors.toList());
-                    return new UsernamePasswordAuthenticationToken(userName, null, authorities);
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userName, null, authorities);
+                    HashMap<String,String> details = new HashMap<>();
+                    details.put("id_user", claims.get("sub").toString());
+                    usernamePasswordAuthenticationToken.setDetails(details);
+                    return usernamePasswordAuthenticationToken;
                 });
     }
 }

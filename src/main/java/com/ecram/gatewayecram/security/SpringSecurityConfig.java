@@ -16,6 +16,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authorization.AuthorizationContext;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 
 @EnableWebFluxSecurity
 public class SpringSecurityConfig {
@@ -35,8 +37,8 @@ public class SpringSecurityConfig {
                         "/api/users-ms/v1/users/findUsers",
                         "/api/users-ms/v1/users/createUser").hasAnyRole("ADMIN", "USER")//No se coloca el prefijo ROL_ porque es automaticamente insertado
                 .pathMatchers(HttpMethod.POST,
-                        "/api/posts-ms/v1/groups/createGroup/{username}",
-                        "/api/posts-ms/v1/posts/createPost/{username}").access(this::currentUserMatchesPath)
+                        "/api/posts-ms/v1/groups/createGroup/{userId}",
+                        "/api/posts-ms/v1/posts/createPost/{userId}").access(this::currentUserIdMatchesPath)
                 .pathMatchers("/api/posts-ms/v1/posts/public/**").permitAll()
                 .anyExchange().authenticated()
                 .and().addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -48,6 +50,21 @@ public class SpringSecurityConfig {
     private Mono<AuthorizationDecision> currentUserMatchesPath(Mono<Authentication> authentication, AuthorizationContext context) {
         return authentication
                 .map(auth -> context.getVariables().get("username").equals(auth.getName()) || auth.getAuthorities().stream().anyMatch(ga -> ga.getAuthority().equals("ROLE_ADMIN")))
+                .map((granted) -> new AuthorizationDecision(granted))
+                .defaultIfEmpty(new AuthorizationDecision(false));
+    }
+
+    private Mono<AuthorizationDecision> currentUserIdMatchesPath(Mono<Authentication> authentication, AuthorizationContext context) {
+        return authentication
+                .map(auth -> {
+                    if(auth.isAuthenticated()) {
+                        Map<String, String> details = (Map<String, String>) auth.getDetails();
+                        return (context.getVariables().get("userId").equals(details.get("id_user"))
+                                ||
+                                auth.getAuthorities().stream().anyMatch(ga -> ga.getAuthority().equals("ROLE_ADMIN")));
+                    }
+                    return false;
+                })
                 .map((granted) -> new AuthorizationDecision(granted))
                 .defaultIfEmpty(new AuthorizationDecision(false));
     }
